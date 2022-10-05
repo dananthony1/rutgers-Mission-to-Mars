@@ -18,7 +18,8 @@ def scrape_all():
       "news_paragraph": news_paragraph,
       "featured_image": featured_image(browser),
       "facts": mars_facts(),
-      "last_modified": dt.datetime.now()
+      "last_modified": dt.datetime.now(),
+      "hemispheres": scrape_hemispheres(browser)
     }
 
     # Stop webdriver and return data
@@ -101,9 +102,54 @@ def mars_facts():
     # Convert dataframe into HTML format, add bootstrap
     return df.to_html(classes="table table-striped")
 
+def scrape_hemispheres(browser):
+    # 1. Use browser to visit the URL 
+    url = 'https://marshemispheres.com/'
+    browser.visit(url)
+
+    # 2. Create a list to hold the images and titles.
+    hemispheres = []
+    hemisphere_image_urls = []
+    hemisphere_image_titles = []
+
+    # 3. Write code to retrieve the image urls and titles for each hemisphere.
+    html = browser.html
+    img_soup = soup(html, 'html.parser')
+    img_item= img_soup.find_all('div', class_='item')
+    for img in img_item:
+    
+        add = img.find('a').get('href')
+        add_url = f'https://marshemispheres.com/{add}'
+        browser.visit(add_url)
+        html = browser.html
+        img_soup = soup(html, 'html.parser')
+    
+        title = img_soup.find('h2').text.strip()
+        hemisphere_image_titles.append(title)
+    
+        add2 = img_soup.find('img', class_="wide-image").get('src')
+        add_url2 = f'https://marshemispheres.com/{add2}'
+        browser.visit(add_url2)
+        html = browser.html
+        img_soup = soup(html, 'html.parser')
+
+        img_url = img_soup.find('img').get('src')
+        hemisphere_image_urls.append(img_url)
+
+        print(img_url)
+        print(title)
+        print('-----------')
+
+    for i in range(0, len(hemisphere_image_urls)):
+        hemisphere = {}
+        hemisphere = {'img_url': hemisphere_image_urls[i], 'title': hemisphere_image_titles[i]}
+        hemispheres.append(hemisphere)
+
+    browser.quit()
+
+    return hemispheres
+
 if __name__ == "__main__":
     # If running as script, print scraped data
     print(scrape_all())
-
-
 
